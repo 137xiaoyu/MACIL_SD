@@ -21,12 +21,17 @@ def avce_train(dataloader, model_av, model_v, optimizer_av, optimizer_v, criteri
                                                                                       visual_logits, seq_len, audio_rep,
                                                                                       visual_rep)
             total_loss = clsloss + lamda_a2b * cmaloss_a2v_a2b + lamda_a2b * cmaloss_v2a_a2b + lamda_a2n * cmaloss_a2v_a2n + lamda_a2n * cmaloss_v2a_a2n
+            # total_loss = clsloss
             unit = dataloader.__len__() // 2
             if i % unit == 0:
                 logger.info(f"Current Lambda_a2b: {lamda_a2b:.2f}, Current Lambda_a2n: {lamda_a2n:.2f}")
                 logger.info(
                     f"{int(i // unit)}/{2} MIL Loss: {clsloss:.4f}, CMA Loss A2V_A2B: {cmaloss_a2v_a2b:.4f}, CMA Loss A2V_A2N: {cmaloss_a2v_a2n:.4f},"
                     f"CMA Loss V2A_A2B: {cmaloss_v2a_a2b:.4f},  CMA Loss V2A_A2N: {cmaloss_v2a_a2n:.4f}")
+            # if i % unit == 0:
+            #     logger.info(f"Current Lambda_a2b: {lamda_a2b:.2f}, Current Lambda_a2n: {lamda_a2n:.2f}")
+            #     logger.info(
+            #         f"{int(i // unit)}/{2} MIL Loss: {clsloss:.4f}")
 
             v_logits = model_v(f_v, seq_len)
             loss_v = criterion(v_logits, label)

@@ -22,9 +22,9 @@ class AVCE_Model(nn.Module):
         self.att_mmil = Att_MMIL(hid_dim, args.num_classes)
 
     def forward(self, f_a, f_v, seq_len):
-        f_v, f_a = self.fc_v(f_v), self.fc_a(f_a)
-        v_out, a_out = self.cma(f_v, f_a)
-        mmil_logits, audio_logits, visual_logits, av_logits = self.att_mmil(a_out, v_out, seq_len)
+        f_v, f_a = self.fc_v(f_v), self.fc_a(f_a)  # (b, n, 1024/128) -> (b, n, 128)
+        v_out, a_out = self.cma(f_v, f_a)  # (b, n, 128)
+        mmil_logits, audio_logits, visual_logits, av_logits = self.att_mmil(a_out, v_out, seq_len)  # (b, 1), (b, n, 1)*3
         return mmil_logits, audio_logits, visual_logits, av_logits, v_out, a_out
 
 
@@ -50,10 +50,10 @@ class Att_MMIL(nn.Module):
         # prediction
         x = torch.cat([a_out.unsqueeze(-2), v_out.unsqueeze(-2)], dim=-2)
         frame_prob = self.fc(x)
-        av_logits = frame_prob.sum(dim=2)
-        a_logits = torch.sigmoid(frame_prob[:, :, 0, :])
-        v_logits = torch.sigmoid(frame_prob[:, :, 1, :])
-        mmil_logits = self.clas(av_logits, seq_len)
+        av_logits = frame_prob.sum(dim=2)  # (b, n, 1)
+        a_logits = torch.sigmoid(frame_prob[:, :, 0, :])  # (b, n, 1)
+        v_logits = torch.sigmoid(frame_prob[:, :, 1, :])  # (b, n, 1)
+        mmil_logits = self.clas(av_logits, seq_len)  # (b, 1)
         return mmil_logits, a_logits, v_logits, av_logits
 
 
